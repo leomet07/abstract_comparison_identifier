@@ -23,7 +23,11 @@ def main(results_path):
         map(lambda result: result["has_comparison"], has_comparison_results)
     )
     results_df["has_comparison"] = has_comparison_results_boolean
-    results_df.to_csv(results_df + ".out")
+    percent_abstracts_with_comparison = results_df["has_comparison"].mean() * 100
+    print(
+        f"Percent of abstracts with lexical+NLI comparison: {percent_abstracts_with_comparison:.2f}"
+    )
+    results_df.to_csv(results_df + ".out.complex")
 
 
 if __name__ == "__main__":
