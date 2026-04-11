@@ -12,7 +12,7 @@ load_dotenv()
 
 client = anthropic.Anthropic(
     api_key=os.getenv("ANTHROPIC_API_KEY"),  # default
-)  # uses ANTHROPIC_API_KEY env var
+)
 
 
 def generate_prompt(abstract):
@@ -44,9 +44,6 @@ def extract_comparisons(abstract: str) -> list[dict]:
         .removesuffix("```")
         .strip()
     )
-    print("-------")
-    print(text)
-    print("-------")
     parsed_comparisons = json.loads(text)
     return parsed_comparisons["comparisons"]
 
@@ -56,22 +53,30 @@ def main(results_path):
     abstracts = results_df["abstract"].to_list()
 
     all_comparisons = []
+
+    num_of_abstracts_with_at_least_one_comparison = 0
+    abstracts_analyzed = 0
     for i, abstract in enumerate(tqdm(abstracts)):
         try:
             comps = extract_comparisons(abstract)
+            num_of_abstracts_with_at_least_one_comparison += 1 if len(comps) > 0 else 0
+            abstracts_analyzed += 1
             for c in comps:
                 c["abstract_idx"] = i
             all_comparisons.extend(comps)
-            print(f"Abstract {i}: {len(comps)} comparisons found")
+            # print(f"Abstract {i}: {len(comps)} comparisons found")
         except Exception as e:
-            print(f"Abstract {i}: error - {e}")
+            # print(f"Abstract {i}: error - {e}")
             traceback.print_stack(e)
 
-    # dump results or load into pandas
+    percent_abstracts_with_at_least_one_comparison = (
+        num_of_abstracts_with_at_least_one_comparison / abstracts_analyzed
+    ) * 100
 
-    print(json.dumps(all_comparisons, indent=2))
+    print(
+        f"Percent of Abstracts with at least one comparison: {percent_abstracts_with_at_least_one_comparison:.2f}"
+    )
 
-    # optional: pandas summary
     df = pd.DataFrame(all_comparisons)
     print(df.groupby("property").size())
 
