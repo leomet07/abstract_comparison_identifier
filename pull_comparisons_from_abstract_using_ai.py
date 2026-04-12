@@ -47,23 +47,27 @@ def extract_comparisons(abstract: str) -> list[dict]:
     return parsed_comparisons["comparisons"]
 
 
-def main(results_path):
+def main(results_path, comparisons_output_path):
     results_df = pd.read_csv(results_path)
-    abstracts = results_df["abstract"].to_list()
 
     all_comparisons = []
 
     num_of_abstracts_with_at_least_one_comparison = 0
     abstracts_analyzed = 0
-    for i, abstract in enumerate(
-        tqdm(abstracts)
-    ):  # TODO: iterate through df itterrows and add in abstract, title, DOI to save to CSV
+    for index, row in tqdm(results_df.iterrows(), total=len(results_df)):
+        abstract = row["abstract"]
+        doi = row["doi"]
+        link = row["link"]
+        title = row["title"]
         try:
             comps = extract_comparisons(abstract)
             num_of_abstracts_with_at_least_one_comparison += 1 if len(comps) > 0 else 0
             abstracts_analyzed += 1
             for c in comps:
-                c["abstract_idx"] = i
+                c["abstract_idx"] = index
+                c["doi"] = doi
+                c["title"] = title
+                c["link"] = link
 
             all_comparisons.extend(comps)
             # print(f"Abstract {i}: {len(comps)} comparisons found")
@@ -82,8 +86,8 @@ def main(results_path):
     df = pd.DataFrame(all_comparisons)
     print(df.groupby("property").size())
 
-    df.to_csv(results_path.removesuffix(".csv") + "_all_comparisons.csv")
+    df.to_csv(comparisons_output_path)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2])  # input, output
