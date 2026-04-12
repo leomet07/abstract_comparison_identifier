@@ -17,12 +17,11 @@ client = anthropic.Anthropic(
 
 def generate_prompt(abstract):
     return (
-        """Extract any comparisons of biogeochemical properties between between novel water bodies (anything that is a result of man-made influence, such as but not limited to agricultural ponds, stormwater ponds, and tailing ponds) and novel/natural ponds.
-Biogeochemistry includes things like: nutrient concentrations (N, P, C, DOC), pH, dissolved oxygen, 
-decomposition rates, greenhouse gas fluxes, redox conditions, mineral weathering, etc.
+        """Extract any comparisons of biogeochemical properties between between novel waterbodies (any waterbody that is a result of man-made influence, such as but not limited to agricultural ponds, stormwater ponds, and tailing ponds) and novel/natural waterbodies.
+The biogeochemistry proprties of interest includes things like: Methane & Greenhouse Gas Emissions, Nitrous Oxide Emissions, Microplastics, Phosphorus Cycling, Pesticides & Agrochemicals, Heavy Metals, Trace Metals, Mercury, and MethylMercury.
 
 Return ONLY JSON: {"comparisons": [{"property": "...", "pond_a": "...", "pond_b": "...", "finding": "..."}]}
-If no pond-type biogeochemistry comparisons exist, return ONLY JSON {"comparisons": []}. You do not need to provide an explanation if no comparisons exist.\n\n"""
+If no waterbody-type biogeochemistry comparisons exist, return ONLY JSON {"comparisons": []}. You do not need to provide an explanation if no comparisons exist.\n\n"""
         + f"Abstract: {abstract}"
     )
 
@@ -56,13 +55,16 @@ def main(results_path):
 
     num_of_abstracts_with_at_least_one_comparison = 0
     abstracts_analyzed = 0
-    for i, abstract in enumerate(tqdm(abstracts)):
+    for i, abstract in enumerate(
+        tqdm(abstracts)
+    ):  # TODO: iterate through df itterrows and add in abstract, title, DOI to save to CSV
         try:
             comps = extract_comparisons(abstract)
             num_of_abstracts_with_at_least_one_comparison += 1 if len(comps) > 0 else 0
             abstracts_analyzed += 1
             for c in comps:
                 c["abstract_idx"] = i
+
             all_comparisons.extend(comps)
             # print(f"Abstract {i}: {len(comps)} comparisons found")
         except Exception as e:

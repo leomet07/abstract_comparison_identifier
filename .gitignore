@@ -3,6 +3,9 @@
 *results/
 *.~lock*
 *.cfg
+*.out
+input/
+old/
 
 
 # Byte-compiled / optimized / DLL files
