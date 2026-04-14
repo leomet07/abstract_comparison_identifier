@@ -6,6 +6,8 @@
 *.out
 input/
 old/
+*.png
+*.csv
 
 
 # Byte-compiled / optimized / DLL files
