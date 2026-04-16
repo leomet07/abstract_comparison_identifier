@@ -8,6 +8,7 @@ input/
 old/
 *.png
 *.csv
+*.json
 
 
 # Byte-compiled / optimized / DLL files
