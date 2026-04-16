@@ -17,7 +17,7 @@ client = anthropic.Anthropic(
 
 def generate_prompt(abstract):
     return (
-        """Extract any comparisons of biogeochemical properties between between novel waterbodies (any waterbody that is a result of man-made influence, such as but not limited to agricultural ponds, stormwater ponds, and tailing ponds) and novel/natural waterbodies.
+        """Extract any comparisons of biogeochemical properties between between novel waterbodies (any waterbody that is a result of man-made influence, such as but not limited to agricultural ponds, stormwater ponds, and tailing ponds) and non-novel/natural waterbodies.
 The biogeochemistry proprties of interest includes things like: Methane & Greenhouse Gas Emissions, Nitrous Oxide Emissions, Microplastics, Phosphorus Cycling, Pesticides & Agrochemicals, Heavy Metals, Trace Metals, Mercury, and MethylMercury.
 
 Return ONLY JSON: {"comparisons": [{"property": "...", "pond_a": "...", "pond_b": "...", "finding": "..."}]}
