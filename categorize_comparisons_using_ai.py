@@ -75,17 +75,22 @@ def categorize_water_bodies(water_bodies: list[str], max_categories: int = 10) -
     with emphasis on distinguishing manmade (novel) vs. natural systems.
     """
 
-    prompt = f"""You are sorting a list of water body types into fewer than {max_categories} broad, mutually exclusive categories.
+    prompt = f"""You are sorting a list of water body types into broad, mutually exclusive categories that I will specify.
 
-The primary organizing principle is origin: manmade (novel, engineered, constructed) water bodies vs. natural water bodies. Within each of those two top-level groups, create sub-categories based on hydrologic form.
+The primary organizing principle is origin: manmade (novel, engineered, constructed) water bodies vs. natural water bodies. Within each of those two top-level groups, there are sub-categories based on hydrologic form.
 
+Categories:
+- One category for Manmade - standing water and impounded natural water bodies
+- One category for Manmade - flowing/linear water bodies
+- One category for Natural - standing water (lentic)
+- One category for Natural - flowing/linear water bodies (lotic)
 Rules:
-- Every water body type in the input list must appear in exactly one category.
+- Every water body type in the input list must appear in exactly one of the previously specified categories.
 - Do not rename, rewrap, or paraphrase entries — copy each string verbatim.
 - Manmade / novel systems include things like: reservoirs, canals, ditches, stormwater ponds, retention/detention basins, wastewater lagoons, constructed wetlands, rice paddies, aquaculture ponds, mine pits, borrow pits, impoundments, and artificial lakes.
 - Natural systems include things like: rivers, streams, creeks, lakes, ponds (natural), wetlands (marshes, swamps, bogs, fens, peatlands), estuaries, lagoons (coastal), springs, oxbows, and floodplains.
 - If an entry is ambiguous (e.g. "pond" with no qualifier), place it in a clearly labeled "ambiguous / unspecified" category rather than guessing.
-- Category names should make the manmade vs. natural distinction obvious (e.g. "Manmade — standing water", "Natural — wetlands", "Natural — lotic systems").
+- Category names should make the manmade vs. natural distinction obvious (e.g. "Manmade - standing water", "Natural - wetlands", "Natural - lotic systems").
 - Return ONLY a valid JSON object. No prose, no markdown fences, no commentary.
 - Schema: {{"category name": ["type 1", "type 2", ...], ...}}
 
