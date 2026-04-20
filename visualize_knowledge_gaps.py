@@ -5,328 +5,57 @@ import matplotlib
 import numpy as np
 import sys
 import os
-
+import json
+from pprint import pprint
 
 df = pd.read_csv(sys.argv[1])
+CATEGORIZATION_FOLDER = sys.argv[2]
 
 CHART_OUT_DIR = "charts"
 if not os.path.exists(CHART_OUT_DIR):
     os.makedirs(CHART_OUT_DIR)
 
-## LENNY NOTE: THE TWO FOLLOWING FUNCTIONS ARE A RESULT OF CLAUDE READING AN OUTPUT CSV
-## MY TODO: categories need to be updated manually
+
+def get_json_file(filepath):
+    with open(filepath, "r") as json_file:
+        return json.load(json_file)
 
 
-# --- Categorize properties ---
-def categorize_property(p):
-    p_lower = p.lower()
-    if any(
-        k in p_lower
-        for k in [
-            "methane",
-            "ch4",
-            "ch₄",
-            "greenhouse gas",
-            "co2",
-            "co₂",
-            "carbon dioxide",
-            "nitrous oxide",
-            "n2o",
-            "n₂o",
-            "ghg",
-            "methane cycling",
-            "benthic respiration",
-            "ammonia emission",
-        ]
-    ):
-        return "GHG Emissions"
-    if any(
-        k in p_lower
-        for k in [
-            "nitrogen",
-            "nitrate",
-            "nitrite",
-            "no3",
-            "nh4",
-            "ammonium",
-            "denitrification",
-            "n₂",
-            "net n",
-            "total kjeldahl",
-            "don ",
-        ]
-    ):
-        return "Nitrogen Cycling"
-    if any(k in p_lower for k in ["phosphorus", "phosphorous", "tp"]):
-        return "Phosphorus Cycling"
-    if any(
-        k in p_lower
-        for k in [
-            "heavy metal",
-            "trace metal",
-            "copper",
-            "zinc",
-            "lead",
-            "cadmium",
-            "nickel",
-            "chromium",
-            "mercury",
-            "mehg",
-            "methylmercury",
-            "arsenic",
-            "manganese",
-            "iron",
-            "selenium",
-            "strontium",
-            "uranium",
-            "aluminum",
-            " cu",
-            " zn",
-            " pb",
-            " cd",
-            " ni",
-            " cr",
-            "dissolved metal",
-            "particulate copper",
-            "particulate zinc",
-            "inorganic mercury",
-        ]
-    ):
-        return "Heavy Metals / Trace Metals"
-    if any(k in p_lower for k in ["microplastic", "tyre wear", "plastic additive"]):
-        return "Microplastics"
-    if any(
-        k in p_lower
-        for k in [
-            "pesticide",
-            "agrochemical",
-            "herbicide",
-            "chlorpyrifos",
-            "chlordane",
-            "terbutylazin",
-            "glyphosate",
-            "diuron",
-            "terbutryn",
-        ]
-    ):
-        return "Pesticides / Agrochemicals"
-    if any(k in p_lower for k in ["pah", "polycyclic aromatic"]):
-        return "PAHs"
-    if any(
-        k in p_lower
-        for k in [
-            "doc",
-            "dom ",
-            "dissolved organic carbon",
-            "dissolved organic matter",
-            "carbon burial",
-        ]
-    ):
-        return "DOC / DOM / C Burial"
-    if any(
-        k in p_lower
-        for k in [
-            "suspended solid",
-            "suspended material",
-            "turbidity",
-            "tss",
-            "sediment retention",
-        ]
-    ):
-        return "TSS / Sediment"
-    if any(
-        k in p_lower
-        for k in [
-            "chloride",
-            "sodium",
-            "conductivity",
-            "chlorophyll",
-            "coliform",
-            "antibiotic",
-            "biodiversity",
-            "ecotoxicity",
-            "eutrophication",
-            "water quality",
-            "water physicochemical",
-            "sulfur",
-            "sulfide",
-            "irreducible",
-            "general pollutant",
-        ]
-    ):
-        return "Other Water Quality"
-    return "Other"
+def pre_process_categories(categorization):
+    values_to_categories = {}  # invert the dictionary
+    for category, values in categorization.items():
+        for value in values:
+            values_to_categories[value] = category
+    return values_to_categories
 
 
-# --- Categorize pond types ---
-def categorize_pond(p):
-    if pd.isna(p):
-        return "Other"
-    p_lower = p.lower()
-    if any(
-        k in p_lower
-        for k in [
-            "natural lake",
-            "natural pond",
-            "natural waterbod",
-            "natural aquatic",
-            "natural shallow",
-            "natural reference",
-            "natural clear",
-            "natural dark",
-            "reference pond",
-            "natural florida",
-            "lowland british",
-            "natural ponds",
-            "typical freshwater",
-            "most lakes",
-            "lakes, reservoirs",
-            "eutrophic lake",
-            "small shallow lake",
-            "natural urban pond",
-            "forest pond",
-        ]
-    ):
-        return "Natural Waterbodies"
-    if any(
-        k in p_lower
-        for k in [
-            "natural wetland",
-            "naturalized wetland",
-            "natural prairie",
-            "natural riparian",
-            "habitat wetland",
-            "marsh, swamp",
-            "cattail wetland",
-        ]
-    ):
-        return "Natural Wetlands"
-    if any(
-        k in p_lower
-        for k in [
-            "retention pond",
-            "retention/detention",
-            "stormwater retention",
-            "swrp",
-            "wet retention",
-        ]
-    ):
-        return "Retention Ponds"
-    if any(
-        k in p_lower
-        for k in [
-            "detention pond",
-            "detention basin",
-            "stormwater detention",
-            "dry detention",
-            "semi-dry detention",
-        ]
-    ):
-        return "Detention Ponds"
-    if any(
-        k in p_lower for k in ["wet pond", "wet detention", "wet stormwater", "swdp"]
-    ):
-        return "Wet Detention Ponds"
-    if any(
-        k in p_lower
-        for k in [
-            "stormwater pond",
-            "stormwater management",
-            "stormwater control",
-            "stormwater bmp",
-            "stormwater treatment",
-            "stormwater wetland",
-            "sgi",
-            "green infrastructure",
-            "stormwater inflow",
-            "stormwater runoff",
-            "stormwater from",
-        ]
-    ):
-        return "Stormwater Ponds (General)"
-    if any(
-        k in p_lower
-        for k in [
-            "constructed wetland",
-            "floating treatment",
-            "bioretention",
-            "bioswale",
-            "biofiltration",
-            "suds",
-            "lid ",
-            "low-impact",
-            "sand filter",
-            "filtration system",
-            "sedimentation pond",
-            "permeable pavement",
-            "grass swale",
-            "grass strip",
-            "swale",
-        ]
-    ):
-        return "Constructed Treatment / LID"
-    if any(
-        k in p_lower
-        for k in [
-            "urban pond",
-            "urban artificial",
-            "urban park pond",
-            "urban ornamental",
-            "urban stormwater pond",
-            "urban wet",
-            "man-made urban",
-            "duckweed",
-            "chlorinated",
-            "non-chlorinated",
-            "macrophyte dominated urban",
-            "phytoplankton dominated urban",
-        ]
-    ):
-        return "Urban Ponds"
-    if any(
-        k in p_lower
-        for k in [
-            "agricultural",
-            "rural",
-            "farm",
-            "feedlot",
-            "poultry",
-            "aquaculture",
-            "fishpond",
-            "pastoral",
-            "rice cultivation",
-        ]
-    ):
-        return "Agricultural Ponds"
-    if any(
-        k in p_lower for k in ["highway", "motorway", "road ", "bridge", "expressway"]
-    ):
-        return "Highway / Road Ponds"
-    if any(k in p_lower for k in ["golf course"]):
-        return "Golf Course Ponds"
-    if any(
-        k in p_lower
-        for k in [
-            "stream",
-            "creek",
-            "river",
-            "tributary",
-            "estuary",
-            "tidal",
-            "coastal",
-            "reservoir",
-            "impoundment",
-        ]
-    ):
-        return "Streams / Rivers / Reservoirs"
-    if any(k in p_lower for k in ["mine", "tailing", "uranium"]):
-        return "Mine / Tailing Ponds"
-    return "Other"
+pond_categorization = get_json_file(
+    os.path.join(CATEGORIZATION_FOLDER, "pond_category_to_ponds.json")
+)
+property_categorization = get_json_file(
+    os.path.join(CATEGORIZATION_FOLDER, "property_category_to_properties.json")
+)
+
+processed_pond_categorization = pre_process_categories(pond_categorization)
+pprint(processed_pond_categorization)
+
+processed_property_categorization = pre_process_categories(property_categorization)
+pprint(processed_property_categorization)
 
 
-df["prop_cat"] = df["property"].apply(categorize_property)
-df["pond_a_cat"] = df["pond_a"].apply(categorize_pond)
-df["pond_b_cat"] = df["pond_b"].apply(categorize_pond)
+def find_category_for_part(p, procssed_categorization: dict[str]):
+    return procssed_categorization.get(p, "Other")
+
+
+df["prop_cat"] = df["property"].apply(
+    lambda p: find_category_for_part(p, processed_property_categorization)
+)
+df["pond_a_cat"] = df["pond_a"].apply(
+    lambda p: find_category_for_part(p, processed_pond_categorization)
+)
+df["pond_b_cat"] = df["pond_b"].apply(
+    lambda p: find_category_for_part(p, processed_pond_categorization)
+)
 
 # Melt so each row contributes a comparison for both pond categories
 rows = []
