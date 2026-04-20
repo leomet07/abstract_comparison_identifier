@@ -17,7 +17,7 @@ client = anthropic.Anthropic(
 )
 
 
-def categorize_properties(properties: list[str], max_categories: int = 10) -> dict:
+def categorize_properties(properties: list[str]) -> dict:
     """
     Categorize biogeochemical properties into broad groups using Claude Haiku.
 
@@ -29,14 +29,24 @@ def categorize_properties(properties: list[str], max_categories: int = 10) -> di
         Dict mapping category name -> list of properties assigned to it.
     """
 
-    prompt = f"""You are sorting a list of biogeochemical properties into fewer than {max_categories} broad, mutually exclusive categories.
+    prompt = f"""You are sorting a list of biogeochemical properties into seven broad, mutually exclusive categories that I will specify.
 
 Rules:
+- Match each proprty to only ONE of the biogeochemistry groupings.
 - Every property in the input list must appear in exactly one category.
 - Do not rename, rewrap, or paraphrase properties — copy each string verbatim.
-- Choose category names that reflect standard biogeochemistry groupings (e.g. carbon cycling, nitrogen cycling, greenhouse gas fluxes, heavy metals, organic pollutants, water/sediment quality).
 - Return ONLY a valid JSON object. No prose, no markdown fences, no commentary.
+- If something really cannot be classified, it may go into an "Other" category - but this should be for extreme outiers and edge-cases only.
 - Schema: {{"category name": ["property 1", "property 2", ...], ...}}
+
+Here are the categories of biogeochemichal properties (7 properties):
+Greenhouse Gas Fluxes
+Carbon Cycling
+Nitrogen Cycling
+Phosphorus Cycling
+Heavy Metals and Trace Metals
+Organic Pollutants
+Synthetic Particles and Contaminants
 
 Input list ({len(properties)} items):
 {json.dumps(properties, ensure_ascii=False, indent=2)}
