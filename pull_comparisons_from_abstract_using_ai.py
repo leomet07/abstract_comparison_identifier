@@ -68,6 +68,7 @@ def main(results_path, comparisons_output_path):
                 c["doi"] = doi
                 c["title"] = title
                 c["link"] = link
+                c["abstract"] = abstract
 
             all_comparisons.extend(comps)
             # print(f"Abstract {index}: {len(comps)} comparisons found")
