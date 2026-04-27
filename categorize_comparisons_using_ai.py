@@ -35,11 +35,11 @@ Rules:
 - Match each proprty to only ONE of the biogeochemistry groupings.
 - Every property in the input list must appear in exactly one category.
 - Do not rename, rewrap, or paraphrase properties — copy each string verbatim.
-- Return ONLY a valid JSON object. No prose, no markdown fences, no commentary.
 - If something really cannot be classified, it may go into an "Other" category - but this should be for extreme outiers and edge-cases only.
+- Return ONLY a valid JSON object. No prose, no markdown fences, no commentary.
 - Schema: {{"category name": ["property 1", "property 2", ...], ...}}
 
-Here are the categories of biogeochemichal properties (7 properties):
+Here are the categories of biogeochemichal properties (10 properties):
 Greenhouse Gas Fluxes
 Carbon Cycling
 Nitrogen Cycling
@@ -47,25 +47,35 @@ Phosphorus Cycling
 Heavy Metals and Trace Metals
 Organic Pollutants
 Synthetic Particles and Contaminants
+Sulfur Cycling
+Water Quality (pH, Major Ion concentrations, Dissolved Oxygen, TSS)
+Biodiversity & Biological Communities
 
 Input list ({len(properties)} items):
 {json.dumps(properties, ensure_ascii=False, indent=2)}
+
+Remember to return ONLY a valid JSON object. No prose, no markdown fences, no commentary.
+
 """
 
-    response = client.messages.create(
+    with client.messages.stream(
         model="claude-haiku-4-5-20251001",
-        max_tokens=8192,
+        max_tokens=32000,
         messages=[{"role": "user", "content": prompt}],
-    )
-
-    text = response.content[0].text.strip()
+    ) as stream:
+        text = "".join(chunk for chunk in stream.text_stream)
     # Strip accidental code fences just in case
+
+    text = text.strip()
     if text.startswith("```"):
         text = text.split("```")[1]
         if text.startswith("json"):
             text = text[4:]
         text = text.strip("` \n")
 
+    print("String start")
+    print(text)
+    print("String end")
     return json.loads(text)
 
 
@@ -96,13 +106,15 @@ Rules:
 
 Input list ({len(water_bodies)} items):
 {json.dumps(water_bodies, ensure_ascii=False, indent=2)}
+
+Remember to return ONLY a valid JSON object. No prose, no markdown fences, no commentary.
 """
 
     # Use the streaming context manager — accumulates the full response
     # while keeping the connection alive for long jobs.
     with client.messages.stream(
         model="claude-haiku-4-5-20251001",
-        max_tokens=32000,
+        max_tokens=64000,
         messages=[{"role": "user", "content": prompt}],
     ) as stream:
         text = "".join(chunk for chunk in stream.text_stream)
@@ -113,6 +125,10 @@ Input list ({len(water_bodies)} items):
         if text.startswith("json"):
             text = text[4:]
         text = text.strip("` \n")
+
+    print("String start")
+    print(text)
+    print("String end")
 
     return json.loads(text)
 
