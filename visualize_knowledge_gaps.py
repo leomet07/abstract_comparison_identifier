@@ -8,7 +8,8 @@ import os
 import json
 from pprint import pprint
 
-df = pd.read_csv(sys.argv[1])
+input_comparisons = sys.argv[1]
+df = pd.read_csv(input_comparisons)
 CATEGORIZATION_FOLDER = sys.argv[2]
 
 CHART_OUT_DIR = "charts"
@@ -60,6 +61,8 @@ df["pond_a_cat"] = df["pond_a"].apply(
 df["pond_b_cat"] = df["pond_b"].apply(
     lambda p: find_category_for_part(p, processed_pond_categorization)
 )
+
+df.to_csv(input_comparisons.replace(".csv", "_with_categories.csv"))
 
 # Melt so each row contributes a comparison for both pond categories
 rows = []
