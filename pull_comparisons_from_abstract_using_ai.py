@@ -17,7 +17,7 @@ client = anthropic.Anthropic(
 
 def generate_prompt(abstract):
     return (
-        """Extract any comparisons of biogeochemical properties between between novel waterbodies (any waterbody that is a result of man-made influence, such as but not limited to agricultural ponds, stormwater ponds, and tailing ponds) and non-novel/natural waterbodies.
+        """Extract any comparisons of biogeochemical properties between between novel waterbodies (any waterbody that is a result of man-made influence, such as but not limited to mining ponds, tailing ponds, agricultural ponds, stormwater ponds, and tailing ponds) and non-novel/natural waterbodies.
 The biogeochemistry proprties of interest includes things like: Methane & Greenhouse Gas Emissions, Nitrous Oxide Emissions, Microplastics, Phosphorus Cycling, Pesticides & Agrochemicals, Heavy Metals, Trace Metals, Mercury, and MethylMercury.
 
 Return ONLY JSON: {"comparisons": [{"property": "...", "pond_a": "...", "pond_b": "...", "finding": "..."}]}
@@ -70,10 +70,10 @@ def main(results_path, comparisons_output_path):
                 c["link"] = link
 
             all_comparisons.extend(comps)
-            # print(f"Abstract {i}: {len(comps)} comparisons found")
+            # print(f"Abstract {index}: {len(comps)} comparisons found")
         except Exception as e:
-            # print(f"Abstract {i}: error - {e}")
-            traceback.print_stack(e)
+            print(f"Abstract {index}: error - {e}")
+            # traceback.print_stack(e)
 
     percent_abstracts_with_at_least_one_comparison = (
         num_of_abstracts_with_at_least_one_comparison / abstracts_analyzed
