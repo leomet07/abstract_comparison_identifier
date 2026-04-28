@@ -18,7 +18,7 @@ client = anthropic.Anthropic(
 def generate_prompt(abstract):
     return (
         """Extract any comparisons of biogeochemical properties between between novel waterbodies (any waterbody that is a result of man-made influence, such as but not limited to mining ponds, tailing ponds, agricultural ponds, stormwater ponds, and tailing ponds) and non-novel/natural waterbodies.
-The biogeochemistry proprties of interest includes things like: Methane & Greenhouse Gas Emissions, Nitrous Oxide Emissions, Microplastics, Phosphorus Cycling, Pesticides & Agrochemicals, Heavy Metals, Trace Metals, Mercury, and MethylMercury.
+The biogeochemistry proprties of interest includes things like: Methane & Greenhouse Gas Emissions, Nitrous Oxide Emissions, Microplastics, Phosphorus Cycling, Pesticides & Agrochemicals, Heavy Metals, Trace Metals, Mercury, and MethylMercury. Try to focus on extracting numerical comparisons (such as of flux, concentration, etc) if there is one present.
 
 Return ONLY JSON: {"comparisons": [{"property": "...", "pond_a": "...", "pond_b": "...", "finding": "..."}]}
 If no waterbody-type biogeochemistry comparisons exist, return ONLY JSON {"comparisons": []}. You do not need to provide an explanation if no comparisons exist.\n\n"""
@@ -48,6 +48,10 @@ def extract_comparisons(abstract: str) -> list[dict]:
 
 
 def main(results_path, comparisons_output_path):
+    comparisons_output_base_folder = os.path.dirname(comparisons_output_path)
+    if not os.path.exists(comparisons_output_base_folder):
+        os.makedirs(comparisons_output_base_folder)
+
     results_df = pd.read_csv(results_path)
 
     all_comparisons = []
