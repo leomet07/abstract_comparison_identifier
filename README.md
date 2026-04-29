@@ -12,3 +12,5 @@ For steps 1-3, see automated_query_downloader,
 5. Classify comparisons into corresponding categories
 6. Run knowledge gap script – see what’s missing, visualize the data, and attach categories back to comparisons
 7. Manually go through comparisons using helpful TUI application.
+
+## TODO: Integrate visual explainer for how this tool works.
