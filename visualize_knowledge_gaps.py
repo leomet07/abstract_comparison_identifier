@@ -1,4 +1,4 @@
-# an AI-generated script to analyze the output of pull_comparisons_from_abstract_using_ai.py
+# 2d matrix is AI-generated plot to analyze the output of pull_comparisons_from_abstract_using_ai.py
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
@@ -7,6 +7,16 @@ import sys
 import os
 import json
 from pprint import pprint
+
+plt.rcParams.update(
+    {
+        "font.size": 12,
+        "font.family": "sans-serif",
+        "font.sans-serif": "Arial",
+        "font.weight": "bold",
+        "axes.labelweight": "bold",
+    }
+)
 
 input_comparisons = sys.argv[1]
 df = pd.read_csv(input_comparisons)
@@ -40,9 +50,21 @@ property_categorization = get_json_file(
 pond_categorization["Manmade - standing water"] = pond_categorization.pop(
     "Manmade - standing water and impounded natural water bodies"
 )
-property_categorization["Water Quality"] = property_categorization.pop(
-    "Water Quality (pH, Major Ion concentrations, Dissolved Oxygen, TSS)"
-)
+# safe to apply visual changes to column names
+property_to_rename = {
+    "Heavy Metals and Trace Metals": "H. & T. Metals",
+    "Synthetic Particles and Contaminants": "Synthetic Particles",
+    "Greenhouse Gas Fluxes": "GHG Fluxes",
+    "Nitrogen Cycling": "N Cycling",
+    "Phosphorus Cycling": "P Cycling",
+    "Sulfur Cycling": "S Cycling",
+    "Biodiversity & Biological Communities": "Biodiversity",
+    "Water Quality (pH, Major Ion concentrations, Dissolved Oxygen, TSS)": "Water Quality",
+}
+for property in property_to_rename:
+    new_name = property_to_rename[property]
+    property_categorization[new_name] = property_categorization.pop(property)
+
 
 processed_pond_categorization = pre_process_categories(pond_categorization)
 processed_property_categorization = pre_process_categories(property_categorization)
@@ -63,6 +85,7 @@ df["pond_b_cat"] = df["pond_b"].apply(
 )
 
 df.to_csv(input_comparisons.replace(".csv", "_with_categories.csv"))
+
 
 # Melt so each row contributes a comparison for both pond categories
 rows = []
@@ -98,9 +121,77 @@ heatmap_df = heatmap_df.loc[row_order, col_order]
 # --- Plot ---
 fig = plt.figure(figsize=(14, 7))
 
-ax = heatmap_df["Manmade - standing water"].plot.bar()
+ax = heatmap_df["Manmade - standing water"].plot.bar(rot=0)
 ax.set_ylabel("Number of Unique DOIs")
 fig.tight_layout()
 fig.savefig(os.path.join(CHART_OUT_DIR, "barplot.png"), dpi=180, bbox_inches="tight")
+
+# --- Plot ---
+fig, ax = plt.subplots(figsize=(14, 7))
+
+# Use a sequential colormap, but make 0 a distinct "gap" color
+cmap = matplotlib.colormaps["YlGnBu"].copy()
+cmap.set_under("#f5f0eb")  # warm off-white for zeros
+
+im = ax.imshow(heatmap_df.values, cmap=cmap, vmin=0.5, aspect="auto")
+
+# Annotate cells
+for i in range(heatmap_df.shape[0]):
+    for j in range(heatmap_df.shape[1]):
+        val = heatmap_df.iloc[i, j]
+        color = (
+            "#aaa"
+            if val == 0
+            else ("white" if val > heatmap_df.values.max() * 0.6 else "#333")
+        )
+        text = "—" if val == 0 else str(val)
+        ax.text(
+            j,
+            i,
+            text,
+            ha="center",
+            va="center",
+            fontsize=9,
+            color=color,
+            fontweight="bold" if val == 0 else "normal",
+        )
+
+ax.set_xticks(range(len(heatmap_df.columns)))
+ax.set_xticklabels(heatmap_df.columns, rotation=40, ha="right", fontsize=9)
+ax.set_yticks(range(len(heatmap_df.index)))
+ax.set_yticklabels(heatmap_df.index, fontsize=10)
+
+cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.02)
+cbar.set_label("Unique Papers (DOIs)", fontsize=10)
+
+ax.set_title(
+    "Pond Biogeochemistry Literature Coverage\n(— marks knowledge gaps)",
+    fontsize=13,
+    fontweight="bold",
+    pad=12,
+)
+ax.set_xlabel("Pond / System Type", fontsize=11, labelpad=8)
+ax.set_ylabel("Biogeochemical Property", fontsize=11, labelpad=8)
+
+fig.tight_layout()
+fig.savefig(os.path.join(CHART_OUT_DIR, "heatmap.png"), dpi=180, bbox_inches="tight")
+print("Saved heatmap.png")
+
+# Print gap summary
+print("\n--- KNOWLEDGE GAPS (0 papers) ---")
+gaps = []
+for prop in heatmap_df.index:
+    for pond in heatmap_df.columns:
+        if heatmap_df.loc[prop, pond] == 0:
+            gaps.append((prop, pond))
+print(
+    f"{len(gaps)} empty cells out of {heatmap_df.size} total ({100*len(gaps)/heatmap_df.size:.0f}%)"
+)
+for prop, pond in gaps[:20]:
+    print(f"  {prop}  x  {pond}")
+if len(gaps) > 20:
+    print(f"  ... and {len(gaps)-20} more")
+
+plt.show()
 
 plt.show()

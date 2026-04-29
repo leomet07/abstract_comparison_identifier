@@ -20,7 +20,7 @@ def read_saves_folder(saves_folder):
 
 
 def display_row(row):
-    print(f"Abstract index: {row["abstract_idx"]}")
+    print(f"Abstract: {row["abstract"]}")
     print(f"DOI: {row["doi"]}")
     print(f"{row["title"]}")
     print()
@@ -82,8 +82,11 @@ def main(comparisons_df_with_categories_path, should_read_saves_folder):
         if latest_save is not None
         else df
     )
+    count_processed = len(latest_save) if latest_save is not None else 0
     for index, row in df_left_to_process.iterrows():
         clear()
+        print(f"You've processed {count_processed} out of {len(df)} comparisons.")
+
         display_row(row)
 
         result = (
@@ -103,6 +106,8 @@ def main(comparisons_df_with_categories_path, should_read_saves_folder):
 
         if result.endswith("q"):
             break
+
+        count_processed += 1
 
 
 if __name__ == "__main__":
